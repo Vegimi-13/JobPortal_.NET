@@ -12,7 +12,7 @@ namespace JobPortal_ServerSide.Data.Seed
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-            string[] roles = { "Admin", "Developer" };
+            string[] roles = { "Admin", "Developer","Company" };
 
             foreach (var role in roles)
             {

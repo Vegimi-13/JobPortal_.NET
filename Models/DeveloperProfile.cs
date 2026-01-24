@@ -13,8 +13,8 @@
 
         public bool IsActive { get; set; } = true;
 
-        public ApplicationUser User { get; set; }
-        public ICollection<Project> Projects { get; set; }
-        public ICollection<DeveloperSkill> DeveloperSkills { get; set; }
+        public ApplicationUser? User { get; set; }
+        public ICollection<Project>? Projects { get; set; }
+        public ICollection<DeveloperSkill>? DeveloperSkills { get; set; }
     }
 }
