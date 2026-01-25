@@ -15,17 +15,26 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-
+using JobPortal_ServerSide.Data;
+using Microsoft.EntityFrameworkCore;
 namespace JobPortal_ServerSide.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(
+    SignInManager<ApplicationUser> signInManager,
+    UserManager<ApplicationUser> userManager,
+    ApplicationDbContext context,
+    ILogger<LoginModel> logger)
         {
             _signInManager = signInManager;
+            _userManager = userManager;
+            _context = context;
             _logger = logger;
         }
 
@@ -116,6 +125,25 @@ namespace JobPortal_ServerSide.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+
+                    var user = await _userManager.FindByEmailAsync(Input.Email);
+
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+
+                    if (await _userManager.IsInRoleAsync(user, "Developer"))
+                    {
+                        var hasProfile = await _context.DeveloperProfiles
+                            .AnyAsync(d => d.UserId == user.Id);
+
+                        if (hasProfile)
+                            return LocalRedirect(Url.Content("~/DeveloperProfiles"));
+
+                        return LocalRedirect(Url.Content("~/DeveloperProfiles/Create"));
+                    }
+
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

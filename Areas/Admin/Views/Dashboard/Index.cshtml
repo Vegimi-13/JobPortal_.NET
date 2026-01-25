@@ -1,0 +1,77 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="fw-bold mb-1">Admin Dashboard</h1>
+            <p class="text-muted mb-0">Overview of platform activity</p>
+        </div>
+        <span class="badge bg-dark px-3 py-2">ADMIN PANEL</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-4 mb-4">
+
+        <!-- Total Users -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small">Total Users</div>
+                            <div class="display-6 fw-bold">@Model.Users</div>
+                        </div>
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center"
+                             style="width:48px;height:48px;">
+                            <i class="bi bi-people fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developer Profiles -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small">Developer Profiles</div>
+                            <div class="display-6 fw-bold">@Model.Developers</div>
+                        </div>
+                        <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center"
+                             style="width:48px;height:48px;">
+                            <i class="bi bi-code-slash fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- (future) Companies / Jobs / Logs -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-4 d-flex align-items-center justify-content-center text-muted">
+                    More stats coming soon…
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-semibold mb-3">User Management</h5>
+                    <p class="text-muted mb-3">
+                        View, block or delete users. Assign roles and inspect activity.
+                    </p>
+                    <a asp-area="Admin" asp-controller="Users" asp-action="Index"
+                       class="btn btn-dark">

@@ -1,0 +1,15 @@
+﻿@model JobPortal_ServerSide.Models.DeveloperProfile
+
+<h1>@Model.FullName</h1>
+
+<p><strong>Title:</strong> @Model.Title</p>
+<p><strong>Location:</strong> @Model.Location</p>
+
+<hr />
+
+<h4>About</h4>
+<p>@Model.Bio</p>
+
+<hr />
+
+<a asp-action="Index">← Back to developers</a>
