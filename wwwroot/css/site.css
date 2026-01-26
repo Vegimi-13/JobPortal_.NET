@@ -50,6 +50,18 @@ body {
         padding: 1.5rem;
     }
 
+/* DeveloperProfiles Table */
+.profile-table th {
+    font-weight: 600;
+    color: #495057;
+}
+
+.profile-table td,
+.profile-table th {
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+}
+
 /* Bootstrap Icons fallback */
 .bi::before {
     display: inline-block;

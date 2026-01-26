@@ -1,15 +1,90 @@
 ﻿@model JobPortal_ServerSide.Models.DeveloperProfile
 
-<h1>@Model.FullName</h1>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-9">
+            <div class="card shadow-sm" style="border-radius: 12px; border: 1px solid #e0e0e0;">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                 style="width: 64px; height: 64px; font-size: 1.75rem; font-weight: 700;">
+                                @(Model.FullName?.FirstOrDefault().ToString().ToUpper())
+                            </div>
+                            <div>
+                                <h1 class="h3 fw-bold mb-1">@Model.FullName</h1>
+                                <div class="text-muted">@Model.Title</div>
+                                @if (!string.IsNullOrWhiteSpace(Model.Location))
+                                {
+                                    <div class="text-muted small mt-1"><i class="bi bi-geo-alt me-1"></i>@Model.Location</div>
+                                }
+                            </div>
+                        </div>
 
-<p><strong>Title:</strong> @Model.Title</p>
-<p><strong>Location:</strong> @Model.Location</p>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Back
+                            </a>
+                        </div>
+                    </div>
 
-<hr />
+                    @if (Model.DeveloperSkills != null && Model.DeveloperSkills.Any())
+                    {
+                        <div class="mb-4">
+                            <div class="p-3 p-md-4" style="border: 1px solid #e0e0e0; border-radius: 12px;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="fw-semibold"><i class="bi bi-lightning-charge me-1"></i> Skills</div>
+                                    <span class="text-muted small">@Model.DeveloperSkills.Count</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var ds in Model.DeveloperSkills.Where(s => s.Skill != null).OrderBy(s => s.Skill.Name))
+                                    {
+                                        <span class="badge rounded-pill bg-dark-subtle text-dark border border-dark-subtle px-3 py-2">
+                                            @ds.Skill.Name
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
 
-<h4>About</h4>
-<p>@Model.Bio</p>
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="p-4 bg-light" style="border-radius: 12px;">
+                                <h5 class="fw-semibold mb-2">About</h5>
+                                @if (!string.IsNullOrWhiteSpace(Model.Bio))
+                                {
+                                    <p class="mb-0 text-muted" style="white-space: pre-line;">@Model.Bio</p>
+                                }
+                                else
+                                {
+                                    <p class="mb-0 text-muted">No bio provided.</p>
+                                }
+                            </div>
+                        </div>
 
-<hr />
-
-<a asp-action="Index">← Back to developers</a>
+                        <div class="col-12">
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">
+                                    Active profile
+                                </span>
+                                @if (!string.IsNullOrWhiteSpace(Model.Title))
+                                {
+                                    <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle">
+                                        @Model.Title
+                                    </span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.Location))
+                                {
+                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                        @Model.Location
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

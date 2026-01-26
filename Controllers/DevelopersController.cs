@@ -55,6 +55,8 @@ namespace JobPortal_ServerSide.Controllers
         {
             var dev = await _context.DeveloperProfiles
                 .Include(d => d.User)
+                .Include(d => d.DeveloperSkills)
+                    .ThenInclude(ds => ds.Skill)
                 .FirstOrDefaultAsync(d => d.Id == id && d.IsActive);
 
             if (dev == null)

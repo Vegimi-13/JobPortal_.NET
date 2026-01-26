@@ -1,4 +1,4 @@
-﻿@model JobPortal_ServerSide.Models.DeveloperProfile
+﻿@model JobPortal_ServerSide.Models.ViewModels.CreateDeveloperProfileViewModel
 
 @{
     ViewData["Title"] = "Create Developer Profile";
@@ -32,6 +32,13 @@
                         </div>
 
                         <div class="mb-3">
+                            <label asp-for="SkillIds" class="form-label fw-semibold"></label>
+                            <select asp-for="SkillIds" asp-items="Model.Skills" multiple class="form-select" size="6"></select>
+                            <span asp-validation-for="SkillIds" class="text-danger small"></span>
+                            <div class="form-text">Hold Ctrl (Windows) / Cmd (Mac) to select multiple.</div>
+                        </div>
+
+                        <div class="mb-3">
                             <label asp-for="Bio" class="form-label fw-semibold">Bio</label>
                             <textarea asp-for="Bio" class="form-control" rows="4" placeholder="Tell us about your experience, skills, and what you're passionate about..."></textarea>
                             <span asp-validation-for="Bio" class="text-danger small"></span>
@@ -56,11 +63,4 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
-</div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
 }

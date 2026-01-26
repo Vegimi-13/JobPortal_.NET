@@ -96,6 +96,28 @@ namespace JobPortal_ServerSide.Areas.Identity.Pages.Account
 
         public async Task OnGetAsync(string returnUrl = null)
         {
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser != null)
+                {
+                    if (await _userManager.IsInRoleAsync(currentUser, "Admin"))
+                    {
+                        Response.Redirect(Url.Content("~/Admin/Dashboard"));
+                        return;
+                    }
+
+                    if (await _userManager.IsInRoleAsync(currentUser, "Developer"))
+                    {
+                        Response.Redirect(Url.Content("~/DeveloperProfiles"));
+                        return;
+                    }
+                }
+
+                Response.Redirect(Url.Content("~/"));
+                return;
+            }
+
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 ModelState.AddModelError(string.Empty, ErrorMessage);
@@ -113,6 +135,11 @@ namespace JobPortal_ServerSide.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                return LocalRedirect(Url.Content("~/"));
+            }
+
             returnUrl ??= Url.Content("~/");
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
@@ -130,7 +157,7 @@ namespace JobPortal_ServerSide.Areas.Identity.Pages.Account
 
                     if (await _userManager.IsInRoleAsync(user, "Admin"))
                     {
-                        return RedirectToAction("Index", "Home");
+                        return LocalRedirect(Url.Content("~/Admin/Dashboard"));
                     }
 
                     if (await _userManager.IsInRoleAsync(user, "Developer"))

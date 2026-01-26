@@ -11,6 +11,8 @@ namespace JobPortal_ServerSide.Data.Seed
 
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
 
             string[] roles = { "Admin", "Developer","Company" };
 
@@ -43,6 +45,23 @@ namespace JobPortal_ServerSide.Data.Seed
                 {
                     await userManager.AddToRoleAsync(user, "Admin");
                 }
+            }
+            if (!context.Skills.Any())
+            {
+                var skills = new List<Skill>
+    {
+        new Skill { Name = "C#" },
+        new Skill { Name = "ASP.NET Core" },
+        new Skill { Name = "JavaScript" },
+        new Skill { Name = "React" },
+        new Skill { Name = "SQL" },
+        new Skill { Name = "Entity Framework" },
+        new Skill { Name = "Docker" },
+        new Skill { Name = "Git" }
+    };
+
+                context.Skills.AddRange(skills);
+                await context.SaveChangesAsync();
             }
         }
     }

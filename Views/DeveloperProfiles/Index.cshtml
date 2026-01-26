@@ -1,65 +1,162 @@
 ﻿@model IEnumerable<JobPortal_ServerSide.Models.DeveloperProfile>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Developer Profiles";
+    var page = (int)(ViewBag.Page ?? 1);
+    var pageSize = (int)(ViewBag.PageSize ?? 10);
+    var totalPages = (int)(ViewBag.TotalPages ?? 0);
+    var totalCount = (int)(ViewBag.TotalCount ?? 0);
 }
 
-<h1>Index</h1>
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-4">
+        <div>
+            <h1 class="mb-1 fw-bold">Developer Profiles</h1>
+            <div class="text-muted">Manage developer profiles in the system</div>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Create Profile
+        </a>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.FullName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Bio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Location)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsActive)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.FullName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Bio)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Location)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsActive)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="card shadow-sm" style="border-radius: 12px; border: 1px solid #e0e0e0;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 profile-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Name</th>
+                            <th>Title</th>
+                            <th>Location</th>
+                            <th>Skills</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 38px; height: 38px; font-weight: 600;">
+                                            @(item.FullName?.FirstOrDefault().ToString().ToUpper())
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@item.FullName</div>
+                                            @if (User.IsInRole("Admin") && item.User != null)
+                                            {
+                                                <div class="text-muted small">@item.User.Email</div>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@item.Title</td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(item.Location))
+                                    {
+                                        <span class="text-muted"><i class="bi bi-geo-alt me-1"></i>@item.Location</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.DeveloperSkills != null && item.DeveloperSkills.Any(ds => ds.Skill != null))
+                                    {
+                                        var skills = item.DeveloperSkills
+                                            .Where(ds => ds.Skill != null)
+                                            .Select(ds => ds.Skill!.Name)
+                                            .Distinct()
+                                            .OrderBy(n => n)
+                                            .ToList();
+
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var skill in skills.Take(3))
+                                            {
+                                                <span class="badge rounded-pill bg-dark-subtle text-dark border border-dark-subtle">@skill</span>
+                                            }
+                                            @if (skills.Count > 3)
+                                            {
+                                                <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle">+@(skills.Count - 3)</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle">Inactive</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary">Details</a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary">Edit</a>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">Delete</a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-footer bg-white d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2" style="border-top: 1px solid #e0e0e0;">
+            <div class="text-muted small">
+                Showing
+                <span class="fw-semibold">@((totalCount == 0) ? 0 : ((page - 1) * pageSize + 1))</span>
+                to
+                <span class="fw-semibold">@Math.Min(page * pageSize, totalCount)</span>
+                of
+                <span class="fw-semibold">@totalCount</span>
+            </div>
+
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Developer profiles pagination">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(page <= 1 ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(page - 1)" asp-route-pageSize="@pageSize">Previous</a>
+                        </li>
+
+                        @{
+                            var start = Math.Max(1, page - 2);
+                            var end = Math.Min(totalPages, page + 2);
+                            if (end - start < 4)
+                            {
+                                start = Math.Max(1, end - 4);
+                                end = Math.Min(totalPages, start + 4);
+                            }
+                        }
+
+                        @for (var p = start; p <= end; p++)
+                        {
+                            <li class="page-item @(p == page ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@p" asp-route-pageSize="@pageSize">@p</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(page >= totalPages ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(page + 1)" asp-route-pageSize="@pageSize">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>

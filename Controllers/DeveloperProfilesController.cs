@@ -9,6 +9,7 @@ using JobPortal_ServerSide.Data;
 using JobPortal_ServerSide.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using JobPortal_ServerSide.Models.ViewModels;
 
 namespace JobPortal_ServerSide.Controllers
 {
@@ -23,19 +24,46 @@ namespace JobPortal_ServerSide.Controllers
         }
 
         // GET: DeveloperProfiles
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isAdmin = User.IsInRole("Admin");
 
-            IQueryable<DeveloperProfile> query = _context.DeveloperProfiles.Include(d => d.User);
+            if (page < 1) page = 1;
+            pageSize = pageSize switch
+            {
+                < 1 => 10,
+                > 50 => 50,
+                _ => pageSize
+            };
+
+            IQueryable<DeveloperProfile> query = _context.DeveloperProfiles
+                .Include(d => d.User)
+                .Include(d => d.DeveloperSkills)
+                    .ThenInclude(ds => ds.Skill);
 
             if (!isAdmin)
             {
                 query = query.Where(d => d.UserId == userId);
             }
 
-            return View(await query.ToListAsync());
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .OrderByDescending(d => d.IsActive)
+                .ThenBy(d => d.FullName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.TotalPages = totalPages;
+
+            return View(items);
         }
 
 
@@ -49,6 +77,8 @@ namespace JobPortal_ServerSide.Controllers
 
             var developerProfile = await _context.DeveloperProfiles
                 .Include(d => d.User)
+                .Include(d => d.DeveloperSkills)
+                    .ThenInclude(ds => ds.Skill)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (developerProfile == null)
             {
@@ -71,7 +101,21 @@ namespace JobPortal_ServerSide.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return View();
+            var skills = await _context.Skills
+                .OrderBy(s => s.Name)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
+            var vm = new CreateDeveloperProfileViewModel
+            {
+                Skills = skills
+            };
+
+            return View(vm);
         }
 
         // POST: DeveloperProfiles/Create
@@ -79,37 +123,62 @@ namespace JobPortal_ServerSide.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FullName,Title,Bio,Location")] DeveloperProfile developerProfile)
+        public async Task<IActionResult> Create(CreateDeveloperProfileViewModel model)
         {
-            // Remove UserId from validation since we set it in the controller
-            ModelState.Remove("UserId");
-            
-            Console.WriteLine("🔥 POST CREATE HIT 🔥");
-            Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
-            Console.WriteLine($"UserId from claims: {User.FindFirstValue(ClaimTypes.NameIdentifier)}");
-            
-            foreach (var entry in ModelState)
+            // Defensive: ensure skills exist in the dropdown when returning the view
+            static async Task<List<SelectListItem>> LoadSkillsAsync(ApplicationDbContext context)
             {
-                foreach (var error in entry.Value.Errors)
-                {
-                    Console.WriteLine($"❌ FIELD: {entry.Key}  ERROR: {error.ErrorMessage}");
-                }
+                return await context.Skills
+                    .OrderBy(s => s.Name)
+                    .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
+                    .ToListAsync();
             }
-            
+
             if (ModelState.IsValid)
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                developerProfile.UserId = userId;
+                var developerProfile = new DeveloperProfile
+                {
+                    UserId = userId,
+                    FullName = model.FullName,
+                    Title = model.Title,
+                    Bio = model.Bio,
+                    Location = model.Location,
+                    IsActive = true
+                };
 
-                Console.WriteLine($"✅ Saving profile: {developerProfile.FullName}");
                 _context.Add(developerProfile);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✅ SAVED TO DATABASE!");
+
+                var selectedSkillIds = model.SkillIds
+                    .Distinct()
+                    .ToList();
+
+                if (selectedSkillIds.Count > 0)
+                {
+                    var validSkillIds = await _context.Skills
+                        .Where(s => selectedSkillIds.Contains(s.Id))
+                        .Select(s => s.Id)
+                        .ToListAsync();
+
+                    foreach (var skillId in validSkillIds)
+                    {
+                        _context.DeveloperSkills.Add(new DeveloperSkill
+                        {
+                            DeveloperProfileId = developerProfile.Id,
+                            SkillId = skillId
+                        });
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
                 return RedirectToAction(nameof(Index));
             }
-            
-            Console.WriteLine("❌ ModelState INVALID - not saving");
-            return View(developerProfile);
+
+            model.SkillIds ??= new List<int>();
+            model.Skills = await LoadSkillsAsync(_context);
+            return View(model);
         }
 
         // GET: DeveloperProfiles/Edit/5
@@ -117,7 +186,9 @@ namespace JobPortal_ServerSide.Controllers
         {
             if (id == null) return NotFound();
 
-            var profile = await _context.DeveloperProfiles.FindAsync(id);
+            var profile = await _context.DeveloperProfiles
+                .Include(p => p.DeveloperSkills)
+                .FirstOrDefaultAsync(p => p.Id == id);
             if (profile == null) return NotFound();
 
             if (!User.IsInRole("Admin"))
@@ -127,7 +198,24 @@ namespace JobPortal_ServerSide.Controllers
                     return Forbid();
             }
 
-            return View(profile);
+            var skills = await _context.Skills
+                .OrderBy(s => s.Name)
+                .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
+                .ToListAsync();
+
+            var vm = new EditDeveloperProfileViewModel
+            {
+                Id = profile.Id,
+                FullName = profile.FullName,
+                Title = profile.Title,
+                Bio = profile.Bio,
+                Location = profile.Location,
+                IsActive = profile.IsActive,
+                SkillIds = profile.DeveloperSkills.Select(ds => ds.SkillId).ToList(),
+                Skills = skills
+            };
+
+            return View(vm);
         }
 
 
@@ -136,12 +224,9 @@ namespace JobPortal_ServerSide.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FullName,Title,Bio,Location")] DeveloperProfile developerProfile)
+        public async Task<IActionResult> Edit(int id, EditDeveloperProfileViewModel model)
         {
-            // Remove UserId from validation since we preserve it from existing record
-            ModelState.Remove("UserId");
-            
-            if (id != developerProfile.Id)
+            if (id != model.Id)
                 return NotFound();
 
             var existing = await _context.DeveloperProfiles.AsNoTracking()
@@ -156,11 +241,67 @@ namespace JobPortal_ServerSide.Controllers
                     return Forbid();
             }
 
-            developerProfile.UserId = existing.UserId;
-            developerProfile.IsActive = existing.IsActive;
+            if (!ModelState.IsValid)
+            {
+                model.SkillIds ??= new List<int>();
+                model.Skills = await _context.Skills
+                    .OrderBy(s => s.Name)
+                    .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
+                    .ToListAsync();
 
-            _context.Update(developerProfile);
+                return View(model);
+            }
+
+            var updated = new DeveloperProfile
+            {
+                Id = existing.Id,
+                UserId = existing.UserId,
+                FullName = model.FullName,
+                Title = model.Title,
+                Bio = model.Bio,
+                Location = model.Location,
+                IsActive = model.IsActive
+            };
+
+            _context.Update(updated);
             await _context.SaveChangesAsync();
+
+            var selectedSkillIds = (model.SkillIds ?? new List<int>()).Distinct().ToList();
+            var validSkillIds = await _context.Skills
+                .Where(s => selectedSkillIds.Contains(s.Id))
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            var existingSkillIds = await _context.DeveloperSkills
+                .Where(ds => ds.DeveloperProfileId == updated.Id)
+                .Select(ds => ds.SkillId)
+                .ToListAsync();
+
+            var toRemove = existingSkillIds.Except(validSkillIds).ToList();
+            var toAdd = validSkillIds.Except(existingSkillIds).ToList();
+
+            if (toRemove.Count > 0)
+            {
+                var rows = await _context.DeveloperSkills
+                    .Where(ds => ds.DeveloperProfileId == updated.Id && toRemove.Contains(ds.SkillId))
+                    .ToListAsync();
+
+                _context.DeveloperSkills.RemoveRange(rows);
+            }
+
+            foreach (var skillId in toAdd)
+            {
+                _context.DeveloperSkills.Add(new DeveloperSkill
+                {
+                    DeveloperProfileId = updated.Id,
+                    SkillId = skillId
+                });
+            }
+
+            if (toRemove.Count > 0 || toAdd.Count > 0)
+            {
+                await _context.SaveChangesAsync();
+            }
 
             return RedirectToAction(nameof(Index));
         }

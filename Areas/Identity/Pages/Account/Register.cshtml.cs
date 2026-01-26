@@ -110,12 +110,30 @@ namespace JobPortal_ServerSide.Areas.Identity.Pages.Account
 
             public async Task OnGetAsync(string returnUrl = null)
             {
+                if (User?.Identity?.IsAuthenticated == true)
+                {
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Admin"))
+                    {
+                        Response.Redirect(Url.Content("~/Admin/Dashboard"));
+                        return;
+                    }
+
+                    Response.Redirect(Url.Content("~/"));
+                    return;
+                }
+
                 ReturnUrl = returnUrl;
                 ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             }
 
             public async Task<IActionResult> OnPostAsync(string returnUrl = null)
             {
+                if (User?.Identity?.IsAuthenticated == true)
+                {
+                    return LocalRedirect(Url.Content("~/"));
+                }
+
                 returnUrl ??= Url.Content("~/");
                 ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
                 if (ModelState.IsValid)
