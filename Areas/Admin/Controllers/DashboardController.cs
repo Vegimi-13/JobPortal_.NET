@@ -20,7 +20,8 @@ namespace JobPortal_ServerSide.Areas.Admin.Controllers
             var stats = new
             {
                 Users = _context.Users.Count(),
-                Developers = _context.DeveloperProfiles.Count()
+                Developers = _context.DeveloperProfiles.Count(),
+                Companies = _context.Companies.Count()
             };
 
             return View(stats);

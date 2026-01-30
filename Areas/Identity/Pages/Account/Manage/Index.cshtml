@@ -1,0 +1,100 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Account Settings";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="mb-4">
+                <h1 class="fw-bold mb-2">Account Settings</h1>
+                <p class="text-muted">Manage your account information and security</p>
+            </div>
+
+            @if (Model.StatusMessage != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @Model.StatusMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card shadow-sm mb-4" style="border-radius: 12px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-semibold mb-3">
+                        <i class="bi bi-person-circle me-2"></i>Profile Information
+                    </h5>
+                    <form id="profile-form" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label fw-semibold">Email</label>
+                            <input asp-for="Username" class="form-control" disabled />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                            <div class="form-text">
+                                Your email is used to sign in and cannot be changed here.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.PhoneNumber" class="form-label fw-semibold">Phone Number</label>
+                            <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Enter your phone number (optional)" />
+                            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i> Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4" style="border-radius: 12px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-semibold mb-3">
+                        <i class="bi bi-shield-lock me-2"></i>Security
+                    </h5>
+                    <p class="text-muted small mb-3">Manage your password and account security</p>
+                    <a asp-page="./ChangePassword" class="btn btn-outline-primary">
+                        <i class="bi bi-key me-1"></i> Change Password
+                    </a>
+                </div>
+            </div>
+
+            @if (User.IsInRole("Developer"))
+            {
+                <div class="card shadow-sm mb-4" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3">
+                            <i class="bi bi-code-slash me-2"></i>Developer Profile
+                        </h5>
+                        <p class="text-muted small mb-3">Manage your professional developer profile</p>
+                        <a asp-area="" asp-controller="DeveloperProfiles" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-right me-1"></i> Go to My Profile
+                        </a>
+                    </div>
+                </div>
+            }
+
+            @if (User.IsInRole("Company"))
+            {
+                <div class="card shadow-sm" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3">
+                            <i class="bi bi-building me-2"></i>Company Profile
+                        </h5>
+                        <p class="text-muted small mb-3">Manage your company information</p>
+                        <a asp-area="" asp-controller="Companies" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-right me-1"></i> Go to My Company
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

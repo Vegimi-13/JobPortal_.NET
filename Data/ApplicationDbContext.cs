@@ -14,6 +14,8 @@ namespace JobPortal_ServerSide.Data
         public DbSet<Project> Projects { get; set; }
         public DbSet<Skill> Skills { get; set; }
         public DbSet<DeveloperSkill> DeveloperSkills { get; set; }
+        public DbSet<Company> Companies { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

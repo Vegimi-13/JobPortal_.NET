@@ -112,6 +112,12 @@ namespace JobPortal_ServerSide.Areas.Identity.Pages.Account
                         Response.Redirect(Url.Content("~/DeveloperProfiles"));
                         return;
                     }
+
+                    if (await _userManager.IsInRoleAsync(currentUser, "Company"))
+                    {
+                        Response.Redirect(Url.Content("~/Companies"));
+                        return;
+                    }
                 }
 
                 Response.Redirect(Url.Content("~/"));
@@ -169,6 +175,17 @@ namespace JobPortal_ServerSide.Areas.Identity.Pages.Account
                             return LocalRedirect(Url.Content("~/DeveloperProfiles"));
 
                         return LocalRedirect(Url.Content("~/DeveloperProfiles/Create"));
+                    }
+
+                    if (await _userManager.IsInRoleAsync(user, "Company"))
+                    {
+                        var hasCompany = await _context.Companies
+                            .AnyAsync(c => c.UserId == user.Id);
+
+                        if (hasCompany)
+                            return LocalRedirect(Url.Content("~/Companies"));
+
+                        return LocalRedirect(Url.Content("~/Companies/Create"));
                     }
 
                     return LocalRedirect(returnUrl);

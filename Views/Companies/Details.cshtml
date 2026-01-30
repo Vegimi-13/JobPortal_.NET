@@ -1,0 +1,92 @@
+﻿@model JobPortal_ServerSide.Models.Company
+
+@{
+    ViewData["Title"] = "Company Details";
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-9">
+            <div class="card shadow-sm" style="border-radius: 12px; border: 1px solid #e0e0e0;">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+                        <div>
+                            <h1 class="h3 fw-bold mb-1">@Model.Name</h1>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle">Inactive</span>
+                            }
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                                <i class="bi bi-pencil-square me-1"></i> Edit
+                            </a>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Back
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="p-4 bg-light" style="border-radius: 12px;">
+                                <h5 class="fw-semibold mb-2">About</h5>
+                                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                                {
+                                    <p class="mb-0 text-muted" style="white-space: pre-line;">@Model.Description</p>
+                                }
+                                else
+                                {
+                                    <p class="mb-0 text-muted">No description provided.</p>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="p-3" style="border: 1px solid #e0e0e0; border-radius: 12px;">
+                                        <div class="text-muted small">Website</div>
+                                        @if (!string.IsNullOrWhiteSpace(Model.Website))
+                                        {
+                                            var href = Model.Website.StartsWith("http", System.StringComparison.OrdinalIgnoreCase) ? Model.Website : "https://" + Model.Website;
+                                            <a href="@href" target="_blank" rel="noopener" class="fw-semibold">
+                                                @Model.Website <i class="bi bi-box-arrow-up-right small"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <div class="fw-semibold">—</div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="p-3" style="border: 1px solid #e0e0e0; border-radius: 12px;">
+                                        <div class="text-muted small">Location</div>
+                                        <div class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.Location) ? "—" : Model.Location)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (isAdmin && Model.User != null)
+                        {
+                            <div class="col-12">
+                                <div class="p-3" style="border: 1px solid #e0e0e0; border-radius: 12px;">
+                                    <div class="text-muted small">Owner (Admin Only)</div>
+                                    <div class="fw-semibold">@Model.User.Email</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,7 +1,7 @@
-﻿@model JobPortal_ServerSide.Models.DeveloperProfile
+﻿@model JobPortal_ServerSide.Models.Company
 
 @{
-    ViewData["Title"] = "Delete Developer Profile";
+    ViewData["Title"] = "Delete Company";
 }
 
 <div class="container py-5">
@@ -10,42 +10,42 @@
             <div class="card shadow-sm" style="border-radius: 12px;">
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
-                        <h2 class="fw-bold mb-2">Delete Developer Profile</h2>
+                        <h2 class="fw-bold mb-2">Delete Company</h2>
                         <p class="text-muted mb-0">This action cannot be undone</p>
                     </div>
 
                     <div class="alert alert-danger" role="alert">
                         <i class="bi bi-exclamation-circle me-2"></i>
-                        <strong>Warning:</strong> You are about to permanently delete this developer profile and all associated data.
+                        <strong>Warning:</strong> You are about to permanently delete this company profile.
                     </div>
 
                     <div class="mb-4">
-                        <h5 class="fw-semibold mb-3">Profile Information</h5>
+                        <h5 class="fw-semibold mb-3">Company Information</h5>
                         <div class="p-3 bg-light rounded">
                             <div class="row g-2">
                                 <div class="col-12">
                                     <div class="d-flex justify-content-between">
-                                        <span class="text-muted small">Full Name</span>
-                                        <span class="fw-semibold">@Model.FullName</span>
+                                        <span class="text-muted small">Name</span>
+                                        <span class="fw-semibold">@Model.Name</span>
                                     </div>
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(Model.Title))
+                                @if (!string.IsNullOrWhiteSpace(Model.Description))
                                 {
                                     <div class="col-12">
                                         <hr class="my-2">
                                         <div class="d-flex justify-content-between">
-                                            <span class="text-muted small">Title</span>
-                                            <span class="fw-semibold">@Model.Title</span>
+                                            <span class="text-muted small">Description</span>
+                                            <span class="fw-semibold">@Model.Description</span>
                                         </div>
                                     </div>
                                 }
-                                @if (!string.IsNullOrWhiteSpace(Model.Bio))
+                                @if (!string.IsNullOrWhiteSpace(Model.Website))
                                 {
                                     <div class="col-12">
                                         <hr class="my-2">
-                                        <div class="d-flex flex-column">
-                                            <span class="text-muted small mb-1">Bio</span>
-                                            <span class="fw-semibold small" style="white-space: pre-line;">@Model.Bio</span>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="text-muted small">Website</span>
+                                            <span class="fw-semibold">@Model.Website</span>
                                         </div>
                                     </div>
                                 }
@@ -73,25 +73,6 @@
                                         }
                                     </div>
                                 </div>
-                                @if (Model.DeveloperSkills != null && Model.DeveloperSkills.Any())
-                                {
-                                    <div class="col-12">
-                                        <hr class="my-2">
-                                        <div class="d-flex flex-column">
-                                            <span class="text-muted small mb-2">Skills (@Model.DeveloperSkills.Count)</span>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                @foreach (var ds in Model.DeveloperSkills.Where(s => s.Skill != null).Take(5))
-                                                {
-                                                    <span class="badge rounded-pill bg-dark-subtle text-dark border border-dark-subtle">@ds.Skill.Name</span>
-                                                }
-                                                @if (Model.DeveloperSkills.Count > 5)
-                                                {
-                                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle">+@(Model.DeveloperSkills.Count - 5) more</span>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
                                 @if (User.IsInRole("Admin") && Model.User != null)
                                 {
                                     <div class="col-12">
